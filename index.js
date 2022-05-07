@@ -1,9 +1,9 @@
-  
+
 const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 
@@ -15,19 +15,27 @@ app.use(express.json()); // body theke data parse korte lage
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yeb55.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-async function run(){
-    try{
+async function run() {
+    try {
         await client.connect();
         const itemsCollection = client.db("allItems").collection("itmes")
 
-        app.get('/items', async(req, res) => {
+        app.get('/items', async (req, res) => {
             const query = {};
             const cursor = itemsCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
         })
 
-    }finally{
+        app.get('/inventory/:id', async (req, res) => {
+            const id = req.params.id;
+            // console.log(id);
+            const query = { _id: ObjectId(id) };
+            const result = await itemsCollection.findOne(query);
+            res.send(result);
+        })
+
+    } finally {
         // await client.close()
     }
 }
