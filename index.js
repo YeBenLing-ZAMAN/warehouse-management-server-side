@@ -35,6 +35,14 @@ async function run() {
             res.send(result);
         })
 
+        /* add one item in DB by post request */
+        app.post('/additem', async(req, res)=>{
+            const newitem = req.body;
+            console.log(newitem);
+            const result = await itemsCollection.insertOne(newitem);
+            res.send(result);
+        })
+
     } finally {
         // await client.close()
     }
