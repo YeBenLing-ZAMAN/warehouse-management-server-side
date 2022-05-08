@@ -19,6 +19,7 @@ async function run() {
     try {
         await client.connect();
         const itemsCollection = client.db("allItems").collection("itmes")
+        const wareHouseCollection = client.db('allItems').collection('packageService')
 
         app.get('/items', async (req, res) => {
             const query = {};
@@ -70,6 +71,13 @@ async function run() {
             res.send(result);
         })
 
+        /*  */
+        app.get('/warehouse', async (req, res) => {
+            const query = {};
+            const cursor = wareHouseCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
 
     } finally {
         // await client.close()
