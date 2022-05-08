@@ -38,7 +38,7 @@ async function run() {
         /* add one item in DB by post request */
         app.post('/additem', async(req, res)=>{
             const newitem = req.body;
-            console.log(newitem);
+            // console.log(newitem);
             const result = await itemsCollection.insertOne(newitem);
             res.send(result);
         })
@@ -51,6 +51,25 @@ async function run() {
             const result = await itemsCollection.deleteOne(query);
             res.send(result);
         })
+
+        /* items update post req handle  */
+        app.put('/item/:itemId', async (req, res) => {
+            const id = req.params.itemId;
+            // console.log(id)
+            const updataItem = req.body;
+            // console.log(updataUser);
+
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    quantity: updataItem.quantity
+                },
+            };
+            const result = await itemsCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
+
 
     } finally {
         // await client.close()
