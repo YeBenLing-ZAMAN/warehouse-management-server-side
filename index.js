@@ -12,6 +12,24 @@ app.use(cors());
 app.use(express.json()); // body theke data parse korte lage 
 
 
+/*  */
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorize access' });
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+        if (error) {
+            return res.status(403).send({ message: 'Forbidden access' })
+        }
+        console.log('decoded', decoded);
+        req.decoded = decoded;
+        next();
+    }) 
+    // console.log('inside erifyJWT', authHeader);
+}
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yeb55.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -20,6 +38,7 @@ async function run() {
         await client.connect();
         const itemsCollection = client.db("allItems").collection("itmes")
         const wareHouseCollection = client.db('allItems').collection('packageService')
+        const myItemsCollection = client.db('allItems').collection('myItems')
 
 
         /* for handle JWT */
@@ -88,23 +107,23 @@ async function run() {
             const cursor = wareHouseCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
-        })
+        })     
 
-        /* handle my Items with JWT */
-        app.get('/myitmes', verifyJWT, async (req, res) => {
+
+         /* handle my Items with JWT */
+         app.get('/myitmes', verifyJWT, async (req, res) => {
             const decodedEmail = req?.decoded?.email;
             const email = req.query.email;
             // console.log(decodedEmail , email);
             if (email === decodedEmail) {
                 const query = { email: email };
-                const cursor = orderCollection.find(query);
+                const cursor = myItemsCollection.find(query);
                 const result = await cursor.toArray();
                 res.send(result);
             }else{
                 res.status(403).send({message:'forbidden access'})
             }
         })
-        
     } finally {
         // await client.close()
     }
