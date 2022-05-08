@@ -21,6 +21,17 @@ async function run() {
         const itemsCollection = client.db("allItems").collection("itmes")
         const wareHouseCollection = client.db('allItems').collection('packageService')
 
+
+        /* for handle JWT */
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            var accesstoken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1d'
+            });
+            res.send({ accesstoken });
+
+        })
+
         app.get('/items', async (req, res) => {
             const query = {};
             const cursor = itemsCollection.find(query);
@@ -71,7 +82,7 @@ async function run() {
             res.send(result);
         })
 
-        /*  */
+        /* for service ware house package */
         app.get('/warehouse', async (req, res) => {
             const query = {};
             const cursor = wareHouseCollection.find(query);
@@ -79,6 +90,21 @@ async function run() {
             res.send(result);
         })
 
+        /* handle my Items with JWT */
+        app.get('/myitmes', verifyJWT, async (req, res) => {
+            const decodedEmail = req?.decoded?.email;
+            const email = req.query.email;
+            // console.log(decodedEmail , email);
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const cursor = orderCollection.find(query);
+                const result = await cursor.toArray();
+                res.send(result);
+            }else{
+                res.status(403).send({message:'forbidden access'})
+            }
+        })
+        
     } finally {
         // await client.close()
     }
